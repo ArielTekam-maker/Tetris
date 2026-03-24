@@ -1,7 +1,8 @@
+package game;
 import java.util.Random;
 import tetrominos.*;
 
-public class TetrominosFactory {
+public class TetrominosRandomFactory {
 
 	private static final Random random = new Random(); 
 	

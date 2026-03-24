@@ -12,6 +12,10 @@ public abstract class TetrominoBase {
 		rotation = (rotation + 1) % shapes.length; 
 	}
 	
+	public void rotateBack() {
+	    rotation = (rotation - 1 + shapes.length) % shapes.length;
+	}
+	
 	public int getX() {return x;}
 	public int getY() {return y;}
 	

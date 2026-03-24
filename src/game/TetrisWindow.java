@@ -1,3 +1,4 @@
+package game;
 import javax.swing.*;
 
 public class TetrisWindow extends JFrame {
@@ -5,7 +6,7 @@ public class TetrisWindow extends JFrame {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	 
+	  
 	public TetrisWindow() { 
 		super("Tetris");
 		

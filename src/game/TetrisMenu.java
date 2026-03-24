@@ -1,5 +1,5 @@
-import javax.swing.*;
-import java.awt.*; 
+package game;
+import javax.swing.*; 
 
 public class TetrisMenu extends JMenuBar {
 	/**
