@@ -10,10 +10,10 @@ public class TetrisPanel extends JPanel{
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private final int rows = 20; 
-	private final int columns = 15; 
+	private final int rows = 22; 
+	private final int columns = 14; 
 	private final int cellSize = 30; 
-	private int[][] board = new int[rows][columns]; 
+	private Color[][] board = new Color[rows][columns]; 
 	private boolean gameOver = false; 
 	
 	public TetrominoBase currentBlock; 
@@ -61,16 +61,16 @@ public class TetrisPanel extends JPanel{
 		for (int row = 0; row < rows; row++) {
 		    for (int col = 0; col < columns; col++) {
 
-		        if (board[row][col] != 0) {
+		        if (board[row][col] != null) {
 
 		            int x = col * cellSize;
 		            int y = row * cellSize;
-
-		            g.setColor(Color.GRAY);
-		            g.fillRect(x, y, cellSize, cellSize);
+		            
+		            g.setColor(board[row][col]);
+		            g.fillRoundRect(x, y, cellSize, cellSize, 12, 12);
 
 		            g.setColor(Color.BLACK);
-		            g.drawRect(x, y, cellSize, cellSize);
+		            g.drawRoundRect(x, y, cellSize, cellSize,12,12);
 		        }
 		    }
 		}
@@ -89,10 +89,10 @@ public class TetrisPanel extends JPanel{
 					int y = (currentBlock.getY() + row) * cellSize;
 					
 					g.setColor(color);
-					g.fillRect(x, y, cellSize, cellSize);
+					g.fillRoundRect(x, y, cellSize, cellSize, 12, 12);
 					
 					g.setColor(Color.BLACK);
-					g.drawRect(x, y, cellSize, cellSize);	
+					g.drawRoundRect(x, y, cellSize, cellSize,12,12);	
 				}
 			}
 		}
@@ -160,7 +160,7 @@ public class TetrisPanel extends JPanel{
 	                    return false;
 	                }
 	                
-	                if (boardY >= 0 && board[boardY][boardX] != 0) {
+	                if (boardY >= 0 && board[boardY][boardX] != null) {
 	                    return false;
 	                }
 	            }
@@ -192,15 +192,20 @@ public class TetrisPanel extends JPanel{
 	                int boardY = currentBlock.getY() + row;
 
 	                // Save block into board
-	                board[boardY][boardX] = 1;
+	                try {
+	                	board[boardY][boardX] = currentBlock.getColor();
+	                } catch (ArrayIndexOutOfBoundsException e) {
+	                	setGameOver(true);
+	                }
+	                
 	            }
 	        }
 	    }
 	}
-	
+
 	private boolean isRowFull(int row) {
 		for (int column = 0; column < columns; column++) {
-			if (board[row][column] == 0) {
+			if (board[row][column] == null) {
 				return false; 
 			}
 		}
@@ -216,16 +221,18 @@ public class TetrisPanel extends JPanel{
 		}
 		
 		for (int column = 0; column < columns; column++) {
-	        board[0][column] = 0;
+	        board[0][column] = null;
 	    }
 	}
 	
 	private void clearLines() {
+		int clearedLines = 0;
 
 	    for (int row = 0; row < rows; row++) {
 
 	        if (isRowFull(row)) {
 	            clearRow(row);
+	            clearedLines ++;
 
 	            row--;
 	        }
@@ -233,9 +240,16 @@ public class TetrisPanel extends JPanel{
 	}
 	
 	private void renderGameOver(Graphics g) {
-			g.setColor(Color.RED);
-			g.setFont(new Font("Arial", Font.BOLD, 40));
-			g.drawString("GAME OVER", 50, 200);
+		
+		String text = "Game Over"; 
+		FontMetrics fm = g.getFontMetrics();
+		
+		int x = (this.getWidth() - fm.stringWidth(text.toUpperCase())) / 4;
+	    int y = (this.getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+		
+		g.setColor(Color.RED);
+		g.setFont(new Font("Arial", Font.BOLD, 40));
+		g.drawString(text.toUpperCase(), x, y);
 	}
 	
 	//Getters and Setters
@@ -245,5 +259,13 @@ public class TetrisPanel extends JPanel{
 
 	public int getColumns() {
 		return columns;
+	}
+	
+	public boolean isGameOver() {
+		return gameOver;
+	}
+
+	public void setGameOver(boolean gameOver) {
+		this.gameOver = gameOver;
 	}
 }

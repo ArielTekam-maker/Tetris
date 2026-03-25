@@ -5,7 +5,7 @@ import java.awt.Color;
 public class ZBlock extends TetrominoBase{
 
 	public ZBlock() {
-		color = new Color(143,0,255); //Purple
+		color =  new Color(220, 0, 0); //Purple
 		shapes = new int [][][] {
 			{
 				{1,1,0},

@@ -5,7 +5,7 @@ import java.awt.Color;
 public class TBlock extends TetrominoBase{
 
 	public TBlock() {
-		color = Color.RED; 
+		color = new Color(160, 0, 240);; 
 		shapes = new int [][][] {
 			{
 				{0,1,0},
