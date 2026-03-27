@@ -13,18 +13,29 @@ public class TetrisPanel extends JPanel{
 	private final int rows = 22; 
 	private final int columns = 14; 
 	private final int cellSize = 30; 
-	private Color[][] board = new Color[rows][columns]; 
+	private Color[][] board = new Color[rows][columns];  
+	
 	private boolean gameOver = false; 
+	private boolean paused = false;
 	
-	public TetrominoBase currentBlock; 
+	private int score = 0; 
+	private int level = 1; 
+	private int linesClearedTotal = 0;
+	private int baseSpeed = 900;
+	private int speed = baseSpeed;
 	
+	private TetrominoBase currentBlock;
 	
 	public TetrisPanel() {
 		setPreferredSize(new Dimension(columns*cellSize, rows*cellSize));
 		setBackground(Color.BLACK);
-		currentBlock = TetrominosRandomFactory.generateRandomBlock(); 
-		currentBlock.setPosition(7,0);
-		moveBlocks();
+		setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 5));
+		
+		createBlock();
+		
+		if(!paused) {
+			moveBlocks();			
+		}
 		
 		Keyboard keyboard = new Keyboard(this); 
 		this.addKeyListener(keyboard);
@@ -37,97 +48,57 @@ public class TetrisPanel extends JPanel{
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 	
-		renderGrid(g);
-		renderBoard(g); 
-		renderBlock(g); 
+		Display.renderGrid(g);
+		Display.renderBoard(g, board); 
+		Display.renderBlock(g, currentBlock); 
 		if (gameOver) {
-			renderGameOver(g);
+			Display.renderMessage(g, "Game Over", this.getWidth(), this.getHeight());
 		}
-	}
-	
-	private void renderGrid(Graphics g) {
-		for (int row = 0; row < rows; row++) {
-			for (int column = 0; column < columns; column++) {
-				int x = column * cellSize; 
-				int y = row * cellSize; 
-				
-				g.drawRect(x, y, cellSize, cellSize);
-				
-			}
-		}
-	}
-	
-	private void renderBoard(Graphics g) {
-		for (int row = 0; row < rows; row++) {
-		    for (int col = 0; col < columns; col++) {
-
-		        if (board[row][col] != null) {
-
-		            int x = col * cellSize;
-		            int y = row * cellSize;
-		            
-		            g.setColor(board[row][col]);
-		            g.fillRoundRect(x, y, cellSize, cellSize, 12, 12);
-
-		            g.setColor(Color.BLACK);
-		            g.drawRoundRect(x, y, cellSize, cellSize,12,12);
-		        }
-		    }
-		}
-	}
-	
-	private void renderBlock(Graphics g) {
 		
-		int[][] shape = currentBlock.getShape(); 
-		Color color = currentBlock.getColor(); 
-		
-		for (int row = 0; row < shape.length; row++) {
-			for (int column = 0; column < shape[row].length; column++) {
-				
-				if(shape[row][column] != 0) {
-					int x = (currentBlock.getX() + column) * cellSize; 
-					int y = (currentBlock.getY() + row) * cellSize;
-					
-					g.setColor(color);
-					g.fillRoundRect(x, y, cellSize, cellSize, 12, 12);
-					
-					g.setColor(Color.BLACK);
-					g.drawRoundRect(x, y, cellSize, cellSize,12,12);	
-				}
-			}
+		if (paused) {
+		    g.setColor(Color.YELLOW);
+		    g.setFont(new Font("Consolas", Font.BOLD, 50));
+		    g.drawString("PAUSED", getWidth()/2 - 70, getHeight()/2);
 		}
 	}
 	
 	private void moveBlocks() {
 		Thread fallingBlocksThread = new Thread(() -> {
 			
+			
 			while(true) {
 				
-				if (!gameOver) {
+				if (!paused && !gameOver) {
 
 					//Get the position of the current Block and update it.
 					int currentX = currentBlock.getX(); 
 					int currentY = currentBlock.getY(); 
-					
 					int newY = currentY + 1; 
 					
 					if (checkInsideBounds(currentX, newY)) {
 						currentBlock.setPosition(currentX, newY);
 					} else {
 						lockBlock(); 
-						clearLines(); 
+						
+						int linesCleared = clearLines();
+						
+						if(linesCleared > 0) {
+							addScore(linesCleared);
+							updateLevelAndSpeed();
+							Dashboard.updateDashboard();
+						}
 						createBlock();
-					} 
-					
-					repaint(); 
-				}
-				
-				//Manage the start of the falling event.
-				try {
-					Thread.sleep(300); // Set the speed of the falling event of the block.
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					}
+					this.repaint();
+
+					//Manage the start of the falling event.
+					try {
+						
+						Thread.sleep(this.speed); // Set the speed of the falling event of the block.
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				
 			}	
@@ -166,17 +137,17 @@ public class TetrisPanel extends JPanel{
 	            }
 	        }
 	    }
-
 	    return true;
 	}
 	
 	private void createBlock() {
-			currentBlock = TetrominosRandomFactory.generateRandomBlock(); 
-			currentBlock.setPosition(7, -3);
+		
+		currentBlock = TetrominosRandomFactory.generateRandomBlock();	
+		currentBlock.setPosition(6, -3);
 			
-			if (!checkInsideBounds(currentBlock.getX(), currentBlock.getY())) {
-			    gameOver = true;
-			}
+		if (!checkInsideBounds(currentBlock.getX(), currentBlock.getY())) {
+			gameOver = true;
+		}
 	}
 	
 	private void lockBlock() {
@@ -197,7 +168,6 @@ public class TetrisPanel extends JPanel{
 	                } catch (ArrayIndexOutOfBoundsException e) {
 	                	setGameOver(true);
 	                }
-	                
 	            }
 	        }
 	    }
@@ -213,10 +183,10 @@ public class TetrisPanel extends JPanel{
 	}
 	
 	
-	private void clearRow(int row) {
-		for (int i = row; i>0; i--) {
+	private void clearRow(int rowNummer) {
+		for (int row = rowNummer; row>0; row--) {
 			for (int column = 0; column < columns; column++) {
-				board[i][column] = board[i-1][column]; 
+				board[row][column] = board[row-1][column]; 
 			}
 		}
 		
@@ -225,31 +195,64 @@ public class TetrisPanel extends JPanel{
 	    }
 	}
 	
-	private void clearLines() {
-		int clearedLines = 0;
-
+	private int clearLines() {
+		int linesCleared = 0;
 	    for (int row = 0; row < rows; row++) {
 
 	        if (isRowFull(row)) {
 	            clearRow(row);
-	            clearedLines ++;
-
+	            linesCleared++;
+	            
 	            row--;
 	        }
 	    }
+	    
+	    return linesCleared;
 	}
 	
-	private void renderGameOver(Graphics g) {
-		
-		String text = "Game Over"; 
-		FontMetrics fm = g.getFontMetrics();
-		
-		int x = (this.getWidth() - fm.stringWidth(text.toUpperCase())) / 4;
-	    int y = (this.getHeight() - fm.getHeight()) / 2 + fm.getAscent();
-		
-		g.setColor(Color.RED);
-		g.setFont(new Font("Arial", Font.BOLD, 40));
-		g.drawString(text.toUpperCase(), x, y);
+	private void addScore(int linesCleared) {
+
+	    int points = 0;
+
+	    switch (linesCleared) {
+	        case 1: points = 100; break;
+	        case 2: points = 300; break;
+	        case 3: points = 500; break;
+	        case 4: points = 800; break;
+	    }
+
+	    score += points * level;
+	    linesClearedTotal += linesCleared;
+
+	    level = linesClearedTotal / 10 + 1;
+	}
+	
+	private void updateLevelAndSpeed() {
+	    level = linesClearedTotal / 10 + 1; // increase level every 10 lines
+
+	    // Decrease speed for higher levels
+	    speed = Math.max(50, baseSpeed - (level - 1) * 40);
+	}
+	
+	public void resetGame() {
+
+	    board = new Color[rows][columns];
+
+	    Dashboard.resetDashboard();
+	    
+	    score = 0;
+	    linesClearedTotal = 0;
+	    level = 1;
+
+	    gameOver = false;
+	    paused = false;
+
+	    currentBlock = TetrominosRandomFactory.generateRandomBlock();
+	    currentBlock.setPosition(6, -3);
+	}
+	
+	public void togglePause() {
+	    paused = !paused;
 	}
 	
 	//Getters and Setters
@@ -268,4 +271,46 @@ public class TetrisPanel extends JPanel{
 	public void setGameOver(boolean gameOver) {
 		this.gameOver = gameOver;
 	}
+	
+	public TetrominoBase getCurrentBlock() {
+		return this.currentBlock; 
+	}
+	
+	public void setCurrentBlock(TetrominoBase currentBlock) {
+		this.currentBlock = currentBlock;
+	}
+	
+	public int getScore() {
+		return score;
+	}
+
+	public void setScore(int score) {
+		this.score = score;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public int getLines() {
+		return linesClearedTotal;
+	}
+
+	public void setLines(int lines) {
+		this.linesClearedTotal = lines;
+	}
+
+	public int getSpeed() {
+		return speed;
+	}
+	
+	public void setSpeed(int speed) {
+		this.speed = speed;
+	}
+
 }
+

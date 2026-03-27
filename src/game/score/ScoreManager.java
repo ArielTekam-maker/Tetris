@@ -1,9 +1,9 @@
 package game.score;
 
 public class ScoreManager {
-	private int score = 0;
-	
-	public void updateScore(int lines) {
+	public static int score = 0;
+
+	public static void updateScore(int lines) {
 		if(lines == 1)
 			score += 20;
 		else if(lines == 2) 
@@ -13,4 +13,5 @@ public class ScoreManager {
 		else if(lines == 4)
 			score += 200;
 	}
+
 }
