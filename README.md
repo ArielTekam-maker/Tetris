@@ -15,7 +15,7 @@ The main goals of this project are:
 
 ---
 
-### Important! 
+### 💡 Important! 
 
 This project is ***my first project and aims to apply my theoretical Java knowledge in practice***. 
 Therefore, some bugs, especially the Pause Button in this case, can occur, but I'm working on them to make the project more stable.😄 Just have fun!😉
