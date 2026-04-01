@@ -72,25 +72,24 @@ You earn points by clearing lines:
 2. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/tetris-java.git
+git clone https://github.com/git@github.com:ArielTekam-maker/Tetris.git
 ```
 
 3. Navigate into the project:
 
 ```bash
-cd tetris-java
+cd Tetris/src
 ```
-
 4. Compile the project:
 
 ```bash
-javac Main.java
+javac game/*.java
 ```
 
 5. Run the game:
 
 ```bash
-java Main
+java game.Main
 ```
 
 ---
